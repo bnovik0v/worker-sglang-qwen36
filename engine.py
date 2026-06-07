@@ -5,6 +5,7 @@ import openai
 import asyncio
 import aiohttp
 import os
+import shlex
 
 
 class SGlangEngine:
@@ -89,6 +90,12 @@ class SGlangEngine:
         for flag in boolean_flags:
             if os.getenv(flag, "").lower() in ("true", "1", "yes"):
                 command.append(f"--{flag.lower().replace('_', '-')}")
+
+        # Arbitrary extra sglang CLI flags, appended last so they win over
+        # any flag built above.
+        extra = os.getenv("SGLANG_EXTRA_ARGS", "")
+        if extra:
+            command.extend(shlex.split(extra))
 
         self.process = subprocess.Popen(command, stdout=None, stderr=None)
         print(f"Server started with PID: {self.process.pid}")
