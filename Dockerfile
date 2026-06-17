@@ -10,7 +10,7 @@ WORKDIR /sgl-workspace
 
 # install dependencies
 COPY requirements.txt ./
-RUN uv pip install --system -r requirements.txt
+RUN rm -f /usr/lib/python3*/EXTERNALLY-MANAGED /usr/local/lib/python3*/EXTERNALLY-MANAGED 2>/dev/null; uv pip install --system -r requirements.txt
 
 # copy source files
 COPY handler.py engine.py utils.py download_model.py test_input.json ./
