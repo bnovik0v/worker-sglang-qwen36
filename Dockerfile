@@ -10,8 +10,7 @@ WORKDIR /sgl-workspace
 
 # install dependencies
 COPY requirements.txt ./
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r requirements.txt
+RUN uv pip install --system -r requirements.txt
 
 # copy source files
 COPY handler.py engine.py utils.py download_model.py test_input.json ./
@@ -38,12 +37,6 @@ ENV MODEL_NAME=$MODEL_NAME \
 
 # Model download script execution
 # Ensure this script uses python3 and handles paths correctly relative to /app if needed
-RUN --mount=type=secret,id=HF_TOKEN,required=false \
-    if [ -f /run/secrets/HF_TOKEN ]; then \
-        export HF_TOKEN=$(cat /run/secrets/HF_TOKEN); \
-    fi && \
-    if [ -n "$MODEL_NAME" ]; then \
-        python3 download_model.py; \
-    fi
+RUN if [ -n "$MODEL_NAME" ]; then python3 download_model.py; fi
 
 CMD ["python3", "handler.py"]
