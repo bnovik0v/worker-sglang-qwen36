@@ -12,6 +12,14 @@ WORKDIR /sgl-workspace
 COPY requirements.txt ./
 RUN rm -f /usr/lib/python3*/EXTERNALLY-MANAGED /usr/local/lib/python3*/EXTERNALLY-MANAGED 2>/dev/null; uv pip install --system -r requirements.txt
 
+# AOT flashinfer kernels (version-matched to the base's flashinfer-python) so the
+# worker skips flashinfer JIT compilation at startup. flashinfer-cubin is arch-independent
+# (Ada + Hopper); jit-cache is per-CUDA (cu129). Non-fatal if a matching wheel is absent.
+RUN FIV=$(python3 -c "import flashinfer; print(flashinfer.__version__)" 2>/dev/null) && echo "flashinfer-python=$FIV" && \
+    ( uv pip install --system "flashinfer-cubin==$FIV" && \
+      uv pip install --system "flashinfer-jit-cache==$FIV" --index-url https://flashinfer.ai/whl/cu129 ) \
+    || echo "WARN: flashinfer AOT wheels unavailable for $FIV; runtime JIT fallback"
+
 # copy source files
 COPY handler.py engine.py utils.py download_model.py test_input.json ./
 COPY public/ ./public/
